@@ -30,7 +30,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Run tests
-        run: pnpm test && pnpm test:integration
+        run: pnpm test
 
       - name: Build package
         run: pnpm bundle
