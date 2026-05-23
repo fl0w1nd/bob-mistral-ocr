@@ -34,7 +34,8 @@ test("stripMarkdown converts structured markdown into readable plain text", () =
     "| --- | --- |",
     "| Tea | 42 |",
     "",
-    "![figure](img-0.jpeg)",
+    "![img-0.jpeg](img-0.jpeg)",
+    "!img-1.jpeg",
     "<br><span>Done</span>"
   ].join("\n");
 
@@ -44,8 +45,9 @@ test("stripMarkdown converts structured markdown into readable plain text", () =
   assert.match(text, /Total: \$42/);
   assert.match(text, /Customer/);
   assert.match(text, /Tea\s+42/);
-  assert.match(text, /figure/);
   assert.match(text, /Done/);
+  assert.doesNotMatch(text, /img-0\.jpeg/);
+  assert.doesNotMatch(text, /img-1\.jpeg/);
   assert.doesNotMatch(text, /---/);
   assert.doesNotMatch(text, /https:\/\/example\.com/);
 });
@@ -66,6 +68,7 @@ test("buildMistralRequest uses defaults and image data URL", () => {
   assert.equal(request.extract_header, false);
   assert.equal(request.extract_footer, false);
   assert.equal(request.confidence_scores_granularity, undefined);
+  assert.equal(request.image_limit, 0);
 });
 
 test("buildMistralRequest includes advanced options", () => {
@@ -74,6 +77,7 @@ test("buildMistralRequest includes advanced options", () => {
     tableFormat: "html",
     extractHeader: true,
     extractFooter: true,
+    extractImages: true,
     confidenceScoresGranularity: "word"
   });
 
@@ -83,6 +87,7 @@ test("buildMistralRequest includes advanced options", () => {
   assert.equal(request.extract_header, true);
   assert.equal(request.extract_footer, true);
   assert.equal(request.confidence_scores_granularity, "word");
+  assert.equal(request.image_limit, undefined);
 });
 
 test("parseOcrResponse returns texts for non-empty pages", () => {

@@ -40,6 +40,7 @@ pnpm bundle
 | Table Format | `Markdown` | 表格输出格式。 |
 | Extract Header | `Off` | 让服务返回页眉内容。 |
 | Extract Footer | `Off` | 让服务返回页脚内容。 |
+| Extract Images | `Off` | 关闭时通过 `image_limit=0` 让 Mistral 不再返回图片占位符（如 `![img-0.jpeg]`）。 |
 | Confidence Scores | `None` | 返回 page 或 word 级别置信度信息。 |
 | Request Timeout | `90 seconds` | OCR 请求超时时间。 |
 

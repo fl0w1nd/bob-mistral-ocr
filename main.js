@@ -92,7 +92,8 @@ function stripMarkdown(markdown) {
   return String(markdown || "")
     .replace(/\r\n/g, "\n")
     .replace(/```[a-zA-Z0-9_-]*\n([\s\S]*?)```/g, "$1")
-    .replace(/!\[([^\]]*)\]\([^)]*\)/g, "$1")
+    .replace(/!\[([^\]]*)\]\([^)]*\)/g, "")
+    .replace(/!img-\d+\.[a-zA-Z0-9]+/g, "")
     .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
     .replace(/^#{1,6}\s+/gm, "")
     .replace(/^\s{0,3}>\s?/gm, "")
@@ -134,6 +135,10 @@ function buildMistralRequest(base64Image, options) {
     request.confidence_scores_granularity = options.confidenceScoresGranularity;
   }
 
+  if (!options.extractImages) {
+    request.image_limit = 0;
+  }
+
   return request;
 }
 
@@ -146,6 +151,7 @@ function getRuntimeConfig() {
     tableFormat: readOption("tableFormat", "markdown"),
     extractHeader: parseBoolean(readOption("extractHeader", "false")),
     extractFooter: parseBoolean(readOption("extractFooter", "false")),
+    extractImages: parseBoolean(readOption("extractImages", "false")),
     confidenceScoresGranularity: readOption("confidenceScoresGranularity", "none"),
     requestTimeout: parseTimeout(readOption("requestTimeout", String(DEFAULT_TIMEOUT)))
   };

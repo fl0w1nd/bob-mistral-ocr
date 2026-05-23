@@ -1,6 +1,6 @@
 {
   "identifier": "com.fl0w1nd.bob.mistralocr",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "category": "ocr",
   "name": "Mistral OCR",
   "summary": "使用 Mistral AI 进行文本识别。",
@@ -95,6 +95,23 @@
       "identifier": "extractFooter",
       "type": "menu",
       "title": "提取页脚",
+      "defaultValue": "false",
+      "menuValues": [
+        {
+          "title": "关闭",
+          "value": "false"
+        },
+        {
+          "title": "开启",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "identifier": "extractImages",
+      "type": "menu",
+      "title": "提取图片",
+      "desc": "开启后 Mistral 会返回图片占位符（如 ![img-0.jpeg]），默认关闭以保持纯文本输出。",
       "defaultValue": "false",
       "menuValues": [
         {
