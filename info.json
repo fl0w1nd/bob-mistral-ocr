@@ -1,0 +1,153 @@
+{
+  "identifier": "com.fl0w1nd.bob.mistralocr",
+  "version": "0.2.1",
+  "category": "ocr",
+  "name": "Mistral OCR",
+  "summary": "使用 Mistral AI 进行文本识别。",
+  "author": "fl0w1nd",
+  "homepage": "",
+  "appcast": "https://github.com/fl0w1nd/bob-mistral-ocr/releases/latest/download/appcast.json",
+  "minBobVersion": "1.20.0",
+  "options": [
+    {
+      "identifier": "apiKey",
+      "type": "text",
+      "title": "API 密钥",
+      "desc": "来自 console.mistral.ai 的 Mistral AI API 密钥。",
+      "textConfig": {
+        "type": "secure",
+        "placeholderText": "请输入 Mistral AI API 密钥"
+      }
+    },
+    {
+      "identifier": "apiUrl",
+      "type": "text",
+      "title": "接口地址",
+      "desc": "自定义接口地址，默认值为 https://api.mistral.ai。",
+      "defaultValue": "https://api.mistral.ai",
+      "textConfig": {
+        "type": "visible",
+        "placeholderText": "https://api.mistral.ai"
+      }
+    },
+    {
+      "identifier": "model",
+      "type": "text",
+      "title": "模型",
+      "desc": "Mistral OCR 模型名称。",
+      "defaultValue": "mistral-ocr-latest",
+      "textConfig": {
+        "type": "visible",
+        "placeholderText": "mistral-ocr-latest"
+      }
+    },
+    {
+      "identifier": "outputFormat",
+      "type": "menu",
+      "title": "输出格式",
+      "desc": "纯文本会清理 Markdown 符号，Markdown 会保留 Mistral 结构。",
+      "defaultValue": "plain",
+      "menuValues": [
+        {
+          "title": "纯文本",
+          "value": "plain"
+        },
+        {
+          "title": "Markdown",
+          "value": "markdown"
+        }
+      ]
+    },
+    {
+      "identifier": "tableFormat",
+      "type": "menu",
+      "title": "表格格式",
+      "desc": "Mistral 表格提取格式。",
+      "defaultValue": "markdown",
+      "menuValues": [
+        {
+          "title": "Markdown",
+          "value": "markdown"
+        },
+        {
+          "title": "HTML",
+          "value": "html"
+        }
+      ]
+    },
+    {
+      "identifier": "extractHeader",
+      "type": "menu",
+      "title": "提取页眉",
+      "defaultValue": "false",
+      "menuValues": [
+        {
+          "title": "关闭",
+          "value": "false"
+        },
+        {
+          "title": "开启",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "identifier": "extractFooter",
+      "type": "menu",
+      "title": "提取页脚",
+      "defaultValue": "false",
+      "menuValues": [
+        {
+          "title": "关闭",
+          "value": "false"
+        },
+        {
+          "title": "开启",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "identifier": "confidenceScoresGranularity",
+      "type": "menu",
+      "title": "置信度",
+      "desc": "可选的 Mistral 置信度粒度。",
+      "defaultValue": "none",
+      "menuValues": [
+        {
+          "title": "无",
+          "value": "none"
+        },
+        {
+          "title": "页面",
+          "value": "page"
+        },
+        {
+          "title": "单词",
+          "value": "word"
+        }
+      ]
+    },
+    {
+      "identifier": "requestTimeout",
+      "type": "menu",
+      "title": "请求超时",
+      "desc": "HTTP 请求超时时间，单位为秒。",
+      "defaultValue": "90",
+      "menuValues": [
+        {
+          "title": "60 秒",
+          "value": "60"
+        },
+        {
+          "title": "90 秒",
+          "value": "90"
+        },
+        {
+          "title": "120 秒",
+          "value": "120"
+        }
+      ]
+    }
+  ]
+}
