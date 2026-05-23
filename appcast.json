@@ -2,12 +2,12 @@
   "identifier": "com.fl0w1nd.bob.mistralocr",
   "versions": [
     {
-      "version": "0.2.1",
-      "desc": "Release 0.2.1",
-      "sha256": "a76ac107fb821ebc298032d153a801b297cbe3abe7c782dac54a07e23474e40a",
-      "url": "https://github.com/fl0w1nd/bob-mistral-ocr/releases/download/v0.2.1/Mistral-OCR.bobplugin",
+      "version": "0.2.2",
+      "desc": "Release 0.2.2",
+      "sha256": "596a6ae48fd57f3675d80b0bab761f31d3e51750a7939fe90718abdc1bd708ff",
+      "url": "https://github.com/fl0w1nd/bob-mistral-ocr/releases/download/v0.2.2/Mistral-OCR.bobplugin",
       "minBobVersion": "1.20.0",
-      "timestamp": 1779559398999
+      "timestamp": 1779560187115
     }
   ]
 }

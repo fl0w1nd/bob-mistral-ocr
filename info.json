@@ -1,11 +1,11 @@
 {
   "identifier": "com.fl0w1nd.bob.mistralocr",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "category": "ocr",
   "name": "Mistral OCR",
   "summary": "使用 Mistral AI 进行文本识别。",
   "author": "fl0w1nd",
-  "homepage": "",
+  "homepage": "https://github.com/fl0w1nd/bob-mistral-ocr",
   "appcast": "https://github.com/fl0w1nd/bob-mistral-ocr/releases/latest/download/appcast.json",
   "minBobVersion": "1.20.0",
   "options": [
