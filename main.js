@@ -89,7 +89,7 @@ function detectMimeType(base64) {
 }
 
 function stripMarkdown(markdown) {
-  return String(markdown || "")
+  return stripTablePlaceholders(markdown)
     .replace(/\r\n/g, "\n")
     .replace(/```[a-zA-Z0-9_-]*\n([\s\S]*?)```/g, "$1")
     .replace(/!\[([^\]]*)\]\([^)]*\)/g, "")
@@ -110,13 +110,82 @@ function stripMarkdown(markdown) {
     .replace(/~~([^~]+)~~/g, "$1")
     .replace(/`([^`]+)`/g, "$1")
     .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/t[dh]>/gi, " ")
+    .replace(/<\/tr>/gi, "\n")
+    .replace(/<\/table>/gi, "\n")
     .replace(/<\/p>/gi, "\n\n")
     .replace(/<[^>]+>/g, "")
     .replace(/^[\s]*([-*_])(?:\s*\1){2,}[\s]*$/gm, "")
     .replace(/[ \t]+\n/g, "\n")
+    .replace(/^[ \t]+|[ \t]+$/gm, "")
     .replace(/[ \t]{2,}/g, " ")
     .replace(/\n{3,}/g, "\n\n")
     .replace(/^\s+|\s+$/g, "");
+}
+
+function stripTablePlaceholders(markdown) {
+  return String(markdown || "")
+    .replace(/\[tbl-\d+\.[^\]]+\]\(tbl-\d+\.[^)]+\)/g, "")
+    .replace(/^\s+|\s+$/g, "");
+}
+
+var TEXT_BLOCK_TYPES = {
+  text: true,
+  title: true,
+  list: true,
+  equation: true,
+  caption: true,
+  code: true,
+  table: true,
+  references: true,
+  aside_text: true,
+  header: true,
+  footer: true,
+  signature: true
+};
+
+function extractTextBlocks(page) {
+  var blocks = page && Array.isArray(page.blocks) ? page.blocks : [];
+  var texts = [];
+
+  for (var i = 0; i < blocks.length; i += 1) {
+    var block = blocks[i] || {};
+    if (!TEXT_BLOCK_TYPES[block.type]) {
+      continue;
+    }
+
+    var content = block.content;
+    if (content === undefined || content === null || content === "") {
+      continue;
+    }
+
+    content = block.type === "table" ? stripMarkdown(content).replace(/\n{2,}/g, "\n") : String(content);
+    content = String(content).replace(/^\s+|\s+$/g, "");
+    if (content) {
+      texts.push(content);
+    }
+  }
+
+  return texts.join("\n\n").replace(/^\s+|\s+$/g, "");
+}
+
+function extractMarkdownBlocks(page) {
+  var blocks = page && Array.isArray(page.blocks) ? page.blocks : [];
+  var texts = [];
+
+  for (var i = 0; i < blocks.length; i += 1) {
+    var block = blocks[i] || {};
+    if (!TEXT_BLOCK_TYPES[block.type]) {
+      continue;
+    }
+
+    var content = stripTablePlaceholders(block.content);
+    if (content) {
+      texts.push(content);
+    }
+  }
+
+  return texts.join("\n\n").replace(/^\s+|\s+$/g, "");
 }
 
 function buildMistralRequest(base64Image, options) {
@@ -126,10 +195,17 @@ function buildMistralRequest(base64Image, options) {
       type: "image_url",
       image_url: "data:" + detectMimeType(base64Image) + ";base64," + base64Image
     },
-    table_format: options.tableFormat || "markdown",
     extract_header: !!options.extractHeader,
     extract_footer: !!options.extractFooter
   };
+
+  if (options.tableFormat && options.tableFormat !== "none") {
+    request.table_format = options.tableFormat;
+  }
+
+  if (options.includeBlocks) {
+    request.include_blocks = true;
+  }
 
   if (options.confidenceScoresGranularity && options.confidenceScoresGranularity !== "none") {
     request.confidence_scores_granularity = options.confidenceScoresGranularity;
@@ -148,10 +224,11 @@ function getRuntimeConfig() {
     apiUrl: normalizeApiUrl(readOption("apiUrl", DEFAULT_API_URL)),
     model: String(readOption("model", DEFAULT_MODEL)).replace(/^\s+|\s+$/g, "") || DEFAULT_MODEL,
     outputFormat: readOption("outputFormat", "plain"),
-    tableFormat: readOption("tableFormat", "markdown"),
+    tableFormat: readOption("tableFormat", "none"),
     extractHeader: parseBoolean(readOption("extractHeader", "false")),
     extractFooter: parseBoolean(readOption("extractFooter", "false")),
     extractImages: parseBoolean(readOption("extractImages", "false")),
+    includeBlocks: parseBoolean(readOption("includeBlocks", "true")),
     confidenceScoresGranularity: readOption("confidenceScoresGranularity", "none"),
     requestTimeout: parseTimeout(readOption("requestTimeout", String(DEFAULT_TIMEOUT)))
   };
@@ -195,13 +272,16 @@ function buildServiceError(statusCode, data) {
   };
 }
 
-function parseOcrResponse(data, outputFormat, from) {
+function parseOcrResponse(data, outputFormat, from, preferBlocks) {
   var pages = data && data.pages ? data.pages : [];
   var texts = [];
 
   for (var i = 0; i < pages.length; i += 1) {
-    var markdown = pages[i] && pages[i].markdown ? String(pages[i].markdown) : "";
-    var content = outputFormat === "markdown" ? markdown : stripMarkdown(markdown);
+    var page = pages[i] || {};
+    var markdown = page.markdown ? String(page.markdown) : "";
+    var blockText = preferBlocks && outputFormat !== "markdown" ? extractTextBlocks(page) : "";
+    var blockMarkdown = preferBlocks && outputFormat === "markdown" ? extractMarkdownBlocks(page) : "";
+    var content = blockText || blockMarkdown || (outputFormat === "markdown" ? stripTablePlaceholders(markdown) : stripMarkdown(markdown));
     content = content.replace(/^\s+|\s+$/g, "");
     if (content) {
       texts.push({ text: content });
@@ -328,7 +408,7 @@ function ocr(query, completion) {
         return;
       }
 
-      completion(parseOcrResponse(resp.data, config.outputFormat, query.detectFrom || query.from));
+      completion(parseOcrResponse(resp.data, config.outputFormat, query.detectFrom || query.from, config.includeBlocks));
     }
   });
 }
@@ -340,7 +420,10 @@ if (typeof module !== "undefined" && module.exports) {
     supportLanguages: supportLanguages,
     pluginTimeoutInterval: pluginTimeoutInterval,
     detectMimeType: detectMimeType,
+    stripTablePlaceholders: stripTablePlaceholders,
     stripMarkdown: stripMarkdown,
+    extractTextBlocks: extractTextBlocks,
+    extractMarkdownBlocks: extractMarkdownBlocks,
     buildMistralRequest: buildMistralRequest,
     parseOcrResponse: parseOcrResponse,
     buildServiceError: buildServiceError,

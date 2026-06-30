@@ -38,9 +38,11 @@ The package is written to `dist/Mistral-OCR.bobplugin`.
 | API URL | `https://api.mistral.ai` | Mistral-compatible endpoint URL. |
 | Model | `mistral-ocr-latest` | OCR model name. |
 | Output Format | `Plain Text` | `Plain Text` removes Markdown syntax, `Markdown` keeps the original structure. |
-| Table Format | `Markdown` | Table output format. |
+| Table Format | `Native` | Uses the Mistral OCR default output; Markdown/HTML request structured tables. |
+| Text Blocks | `On` | Requests `include_blocks=true` and prefers text-like blocks while skipping chart and table blocks. |
 | Extract Header | `Off` | Requests header content. |
 | Extract Footer | `Off` | Requests footer content. |
+| Extract Images | `Off` | Uses `image_limit=0` to keep image placeholder count at 0. |
 | Confidence Scores | `None` | Returns page or word confidence data. |
 | Request Timeout | `90 seconds` | OCR request timeout. |
 
@@ -65,8 +67,13 @@ Defaults to `mistral-ocr-latest`. You can switch to a newer OCR model later.
 
 ### Table Format
 
-- `Markdown`: suitable for normal Bob OCR viewing.
+- `Native`: uses the Mistral OCR default output, best for plain OCR.
+- `Markdown`: suitable for viewing structured tables in Bob.
 - `HTML`: suitable for keeping richer table structure.
+
+### Text Blocks
+
+When enabled, the plugin asks Mistral for `blocks` and plain-text output prefers text-like blocks such as `text`, `title`, and `caption`. Keep this enabled when charts are being converted into Markdown tables and you need text closer to raw OCR.
 
 ### Extract Header / Footer
 

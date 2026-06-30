@@ -1,6 +1,6 @@
 {
   "identifier": "com.fl0w1nd.bob.mistralocr",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "category": "ocr",
   "name": "Mistral OCR",
   "summary": "使用 Mistral AI 进行文本识别。",
@@ -62,9 +62,13 @@
       "identifier": "tableFormat",
       "type": "menu",
       "title": "表格格式",
-      "desc": "Mistral 表格提取格式。",
-      "defaultValue": "markdown",
+      "desc": "原生模式沿用 Mistral OCR 默认输出；Markdown/HTML 会请求结构化表格。",
+      "defaultValue": "none",
       "menuValues": [
+        {
+          "title": "原生",
+          "value": "none"
+        },
         {
           "title": "Markdown",
           "value": "markdown"
@@ -72,6 +76,23 @@
         {
           "title": "HTML",
           "value": "html"
+        }
+      ]
+    },
+    {
+      "identifier": "includeBlocks",
+      "type": "menu",
+      "title": "文本块输出",
+      "desc": "开启后请求 blocks，并优先输出文字类块内容，适合避开图表被整理为 Markdown 的结果。",
+      "defaultValue": "true",
+      "menuValues": [
+        {
+          "title": "开启",
+          "value": "true"
+        },
+        {
+          "title": "关闭",
+          "value": "false"
         }
       ]
     },

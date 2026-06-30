@@ -36,6 +36,7 @@ test("stripMarkdown converts structured markdown into readable plain text", () =
     "",
     "![img-0.jpeg](img-0.jpeg)",
     "!img-1.jpeg",
+    "[tbl-0.html](tbl-0.html)",
     "<br><span>Done</span>"
   ].join("\n");
 
@@ -48,6 +49,7 @@ test("stripMarkdown converts structured markdown into readable plain text", () =
   assert.match(text, /Done/);
   assert.doesNotMatch(text, /img-0\.jpeg/);
   assert.doesNotMatch(text, /img-1\.jpeg/);
+  assert.doesNotMatch(text, /tbl-0\.html/);
   assert.doesNotMatch(text, /---/);
   assert.doesNotMatch(text, /https:\/\/example\.com/);
 });
@@ -55,16 +57,18 @@ test("stripMarkdown converts structured markdown into readable plain text", () =
 test("buildMistralRequest uses defaults and image data URL", () => {
   const request = plugin.buildMistralRequest("iVBORabc", {
     model: "mistral-ocr-latest",
-    tableFormat: "markdown",
+    tableFormat: "none",
     extractHeader: false,
     extractFooter: false,
+    includeBlocks: true,
     confidenceScoresGranularity: "none"
   });
 
   assert.equal(request.model, "mistral-ocr-latest");
   assert.equal(request.document.type, "image_url");
   assert.equal(request.document.image_url, "data:image/png;base64,iVBORabc");
-  assert.equal(request.table_format, "markdown");
+  assert.equal(request.table_format, undefined);
+  assert.equal(request.include_blocks, true);
   assert.equal(request.extract_header, false);
   assert.equal(request.extract_footer, false);
   assert.equal(request.confidence_scores_granularity, undefined);
@@ -90,6 +94,19 @@ test("buildMistralRequest includes advanced options", () => {
   assert.equal(request.image_limit, undefined);
 });
 
+test("extractTextBlocks keeps table text and skips chart blocks", () => {
+  const text = plugin.extractTextBlocks({
+    blocks: [
+      { type: "title", content: "Quarterly result" },
+      { type: "image", content: "![img-0.jpeg](img-0.jpeg)" },
+      { type: "table", content: "| A | B |\n| --- | --- |\n| Q1 | 12 |" },
+      { type: "text", content: "Revenue grew 12%" }
+    ]
+  });
+
+  assert.equal(text, "Quarterly result\n\nA B\nQ1 12\n\nRevenue grew 12%");
+});
+
 test("parseOcrResponse returns texts for non-empty pages", () => {
   const parsed = plugin.parseOcrResponse({
     pages: [
@@ -108,12 +125,44 @@ test("parseOcrResponse returns texts for non-empty pages", () => {
   ]);
 });
 
+test("parseOcrResponse prefers text blocks for plain output", () => {
+  const parsed = plugin.parseOcrResponse({
+    pages: [{
+      markdown: "| Chart | Value |\n| --- | --- |\n| Q1 | 10 |",
+      blocks: [
+        { type: "text", content: "Q1 revenue" },
+        { type: "table", content: "[tbl-0.md](tbl-0.md)" },
+        { type: "image", content: "![chart](chart.jpeg)" }
+      ]
+    }]
+  }, "plain", "auto", true);
+
+  assert.deepEqual(parsed.result.texts, [{ text: "Q1 revenue" }]);
+});
+
 test("parseOcrResponse preserves markdown when requested", () => {
   const parsed = plugin.parseOcrResponse({
     pages: [{ markdown: "# Title\n\n| A | B |" }]
   }, "markdown", "auto");
 
   assert.equal(parsed.result.texts[0].text, "# Title\n\n| A | B |");
+});
+
+test("parseOcrResponse returns table markdown from blocks", () => {
+  const parsed = plugin.parseOcrResponse({
+    pages: [{
+      markdown: "[tbl-0.md](tbl-0.md)",
+      blocks: [
+        { type: "title", content: "Metrics" },
+        { type: "table", content: "| A | B |\n| --- | --- |\n| Q1 | 12 |" },
+        { type: "table", content: "[tbl-1.md](tbl-1.md)" },
+        { type: "image", content: "![chart](chart.jpeg)" }
+      ]
+    }]
+  }, "markdown", "auto", true);
+
+  assert.equal(parsed.result.texts[0].text, "Metrics\n\n| A | B |\n| --- | --- |\n| Q1 | 12 |");
+  assert.doesNotMatch(parsed.result.texts[0].text, /tbl-1\.md/);
 });
 
 test("parseOcrResponse returns notFound for empty content", () => {

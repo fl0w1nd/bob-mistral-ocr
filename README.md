@@ -37,10 +37,11 @@ pnpm bundle
 | API URL | `https://api.mistral.ai` | Mistral 兼容接口地址。 |
 | Model | `mistral-ocr-latest` | OCR 模型名。 |
 | Output Format | `Plain Text` | `Plain Text` 会清理 Markdown 符号，`Markdown` 会保留原始结构。 |
-| Table Format | `Markdown` | 表格输出格式。 |
+| Table Format | `Native` | 默认沿用 Mistral OCR 原生输出；Markdown/HTML 会请求结构化表格。 |
+| Text Blocks | `On` | 请求 `include_blocks=true`，优先输出文字类 block，图表和表格 block 会被跳过。 |
 | Extract Header | `Off` | 让服务返回页眉内容。 |
 | Extract Footer | `Off` | 让服务返回页脚内容。 |
-| Extract Images | `Off` | 关闭时通过 `image_limit=0` 让 Mistral 不再返回图片占位符（如 `![img-0.jpeg]`）。 |
+| Extract Images | `Off` | 关闭时通过 `image_limit=0` 将图片占位符数量控制为 0（如 `![img-0.jpeg]`）。 |
 | Confidence Scores | `None` | 返回 page 或 word 级别置信度信息。 |
 | Request Timeout | `90 seconds` | OCR 请求超时时间。 |
 
@@ -65,8 +66,13 @@ pnpm bundle
 
 ### Table Format
 
-- `Markdown`：适合 Bob 中的常规文本查看。
-- `HTML`：适合需要保留表格结构细节的场景。
+- `Native`：沿用 Mistral OCR 默认输出，适合原文 OCR。
+- `Markdown`：适合在 Bob 中查看结构化表格。
+- `HTML`：适合保留表格结构细节的场景。
+
+### Text Blocks
+
+开启后会请求 Mistral 返回 `blocks`，纯文本输出优先拼接 `text`、`title`、`caption` 等文字类 block。遇到图表被整理成 Markdown 表格时，保持开启即可获得更接近原文 OCR 的结果。
 
 ### Extract Header / Footer
 
